@@ -9,26 +9,29 @@ import sys
 import argparse
 import json
 import requests
+import re
 
 class AmbariInventory(object):
 
     def __init__(self):
         # TODO: load settings from a config file
-        self.cluster_name = 'Sandbox'
-        self.ambari_host = 'localhost'
+        self.cluster_name = 'sandbox'
         self.uri = 'http://localhost:8080'
         self.ambari_user = 'admin'
         self.ambari_pass = 'admin'
 
         args = self.process_args()
         service_list = self.get_service_list()
-        print service_list
+        #service_list = json.load(open('sandbox-inventory.json'))
+
+        ambari_inv = self.generate_ambari_inventory(service_list)
 
         # Called with `--list`.
         if args.list:
-            json.dumps(self.generate_ambari_inventory(service_list))
+            print json.dumps(ambari_inv)
         elif args.host:
-            json.dumps(self.generate_ambari_inventory(service_list))
+            # Not implemented, we're embedding _meta in --list
+            print json.dumps(ambari_inv)
 
 
     def process_args(self):
@@ -43,11 +46,7 @@ class AmbariInventory(object):
 
     # hosts/services/components from Ambari
     def get_service_list(self):
-        services = {
-            'ambari': {
-                'server': [self.ambari_host]
-            }
-        }
+        services = {}
 
         result = self.ambari_get('/services')
 
@@ -72,6 +71,9 @@ class AmbariInventory(object):
         return services
 
     def generate_ambari_inventory(self, services):
+        ambari_host = re.sub(r'https?:\\', '', self.uri)
+        ambari_host = re.sub(r':\d+', '', ambari_host)
+
         # Default inventory
         inventory = {
             'all': {
@@ -83,8 +85,13 @@ class AmbariInventory(object):
             'hadoop': {
                 'children': [self.cluster_name]
             },
-            'ambari-agent': {
-                'children': ['hadoop']
+            'ambari': {
+                'agent': {
+                    'children': ['hadoop']
+                },
+                'server': {
+                    'hosts': [ambari_host]
+                }
             },
             '_meta': {
                 'hostvars': {}
@@ -93,6 +100,9 @@ class AmbariInventory(object):
 
         # Loop over services
         for service_k, service_v in services.iteritems():
+            # convert service_k & _v to lower case
+            service_k = service_k.lower()
+
             # Add the service group as a child of the cluster group
             if self.cluster_name + '-' + service_k not in inventory[self.cluster_name]['children']:
                 inventory[self.cluster_name]['children'].append(self.cluster_name + '-' + service_k)
@@ -109,6 +119,16 @@ class AmbariInventory(object):
 
             # Loop over components
             for component_k, component_v in service_v.iteritems():
+                # convert component_k & _v to lower case
+                component_k = component_k.lower()
+
+                # strip doubling up names of services/components (eg: hdfs-hdfs_client becomes hdfs-client)
+                component_k = re.sub(service_k + '_', '', component_k)
+
+                # rename component / service name duplication for clients
+                if (service_k == 'pig' and component_k == 'pig') or (service_k == 'slider' and component_k == 'slider') or (service_k == 'sqoop' and component_k == 'sqoop'):
+                    component_k = 'client'
+
                 if self.cluster_name + '-' + service_k + '-' + component_k not in inventory[self.cluster_name + '-' + service_k]['children']:
                     inventory[self.cluster_name + '-' + service_k]['children'].append(self.cluster_name + '-' + service_k + '-' + component_k)
 
