@@ -26,8 +26,8 @@ class AmbariInventory(object):
         self.ambari_pass = config[self.cluster_name]['ambari_pass']
 
         args = self.process_args()
-        #service_list = self.get_service_list()
-        service_list = json.load(open('ansible-inventory-sample.json'))
+        service_list = self.get_service_list()
+        #service_list = json.load(open('ansible-inventory-sample.json'))
 
         ambari_inv = self.generate_ambari_inventory(service_list)
 
