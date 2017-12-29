@@ -1,0 +1,14 @@
+{
+  "cluster0": {
+    "uri": "http://localhost:8080",
+    "name": "cluster0",
+    "ambari_user": "admin",
+    "ambari_pass": "admin0"
+  },
+  "cluster1": {
+    "uri": "https://localhost.localdomain:8444",
+      "name": "cluster1",
+      "ambari_user": "admin",
+      "ambari_pass": "admin1"
+  }
+}

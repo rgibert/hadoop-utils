@@ -14,15 +14,20 @@ import re
 class AmbariInventory(object):
 
     def __init__(self):
-        # TODO: load settings from a config file
-        self.cluster_name = 'sandbox'
-        self.uri = 'http://localhost:8080'
-        self.ambari_user = 'admin'
-        self.ambari_pass = 'admin'
+        # Get the cluster name from the OS environment variable AMBARI_CLUSTER_NAME
+        self.cluster_name = os.environ['AMBARI_CLUSTER_NAME']
+
+        # Load configuration file
+        with open('ansible-inventory-config.json') as json_data_file:
+            config = json.load(json_data_file)
+
+        self.uri = config[self.cluster_name]['uri']
+        self.ambari_user = config[self.cluster_name]['ambari_user']
+        self.ambari_pass = config[self.cluster_name]['ambari_pass']
 
         args = self.process_args()
-        service_list = self.get_service_list()
-        #service_list = json.load(open('ansible-inventory-sample.json'))
+        #service_list = self.get_service_list()
+        service_list = json.load(open('ansible-inventory-sample.json'))
 
         ambari_inv = self.generate_ambari_inventory(service_list)
 
