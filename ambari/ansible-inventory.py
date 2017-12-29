@@ -48,17 +48,21 @@ class AmbariInventory(object):
             }
         }
 
-        for item in ambari_get('/services')['items']:
-            services[item['ServiceInfo']['service_name']] = {}
+        result = ambari_get('/services')
+        if result.status_code == requests.codes.ok:
+            for item in json.loads(result.text)['items']:
+                services[item['ServiceInfo']['service_name']] = {}
 
-        for service in services:
-            for item in ambari_get('/services/' + service + '/components')['items']:
-                component_name = item['ServiceComponentInfo']['component_name']
+            for service in services:
+                result = ambari_get('/services/' + service + '/components')
+                if result.status_code == requests.codes.ok:
+                    for item in json.loads(result)['items']:
+                        component_name = item['ServiceComponentInfo']['component_name']
 
-                services[service][component_name] = []
+                        services[service][component_name] = []
 
-                for host in ambari_get('/services/' + service + '/components/' + component_name + '?fields=host_components/HostRoles/host_name')['host_components']:
-                    services[service][component_name].append(host['HostRoles']['host_name'])
+                        for host in ambari_get('/services/' + service + '/components/' + component_name + '?fields=host_components/HostRoles/host_name')['host_components']:
+                            services[service][component_name].append(host['HostRoles']['host_name'])
 
         return services
 
