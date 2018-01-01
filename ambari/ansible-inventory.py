@@ -16,14 +16,9 @@ class AmbariInventory(object):
     def __init__(self):
         # Get the cluster name from the OS environment variable AMBARI_CLUSTER_NAME
         self.cluster_name = os.environ['AMBARI_CLUSTER_NAME']
-
-        # Load configuration file
-        with open('ansible-inventory-config.json') as json_data_file:
-            config = json.load(json_data_file)
-
-        self.uri = config[self.cluster_name]['uri']
-        self.ambari_user = config[self.cluster_name]['ambari_user']
-        self.ambari_pass = config[self.cluster_name]['ambari_pass']
+        self.uri = os.environ['AMBARI_URI']
+        self.ambari_user = os.environ['AMBARI_USER_NAME']
+        self.ambari_pass = os.environ['AMBARI_USER_PASS']
 
         args = self.process_args()
         service_list = self.get_service_list()
