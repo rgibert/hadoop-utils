@@ -84,7 +84,7 @@ IFS=","
 for component in ${components}; do
   sn="${component^^}"
   case ${component} in
-    hdfs|yarn|mapreduce2|hbase|hive|webhcat|pig|storm|falcon|oozie|te|sqoop|ambari_metrics|atlas|kafka|knox|spark|smartsense|ranger|ranger_kms)
+    hdfs|yarn|mapreduce2|hbase|hive|webhcat|pig|storm|falcon|oozie|tez|sqoop|ambari_metrics|atlas|kafka|knox|spark|smartsense|ranger|ranger_kms)
       cmd="${sn}_SERVICE_CHECK"
       ;;
     zookeeper)
