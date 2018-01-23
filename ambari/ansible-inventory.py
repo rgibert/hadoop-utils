@@ -129,6 +129,9 @@ class AmbariInventory(object):
                 if (service_k == 'pig' and component_k == 'pig') or (service_k == 'slider' and component_k == 'slider') or (service_k == 'sqoop' and component_k == 'sqoop'):
                     component_k = 'client'
 
+                elif (service_k == 'infra_solr' and component_k = 'infra_solr'):
+                    component_k = 'infra_solr_server'
+
                 if self.cluster_name + '-' + service_k + '-' + component_k not in inventory[self.cluster_name + '-' + service_k]['children']:
                     inventory[self.cluster_name + '-' + service_k]['children'].append(self.cluster_name + '-' + service_k + '-' + component_k)
 
