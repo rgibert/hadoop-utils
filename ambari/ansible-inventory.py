@@ -71,7 +71,7 @@ class AmbariInventory(object):
         return services
 
     def generate_ambari_inventory(self, services):
-        ambari_host = re.sub(r'https?:\/\/*', '', self.uri)
+        ambari_host = re.sub(r'https?:\/\/', '', self.uri)
         ambari_host = re.sub(r':\d+', '', ambari_host)
 
         # Default inventory
