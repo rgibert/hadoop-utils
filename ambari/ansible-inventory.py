@@ -85,15 +85,27 @@ class AmbariInventory(object):
             'hadoop': {
                 'children': [self.cluster_name]
             },
-            'ambari-agent': {
+            self.cluster_name + '-ambari-agent': {
                 'children': ['hadoop']
             },
-            'ambari-server': {
+            self.cluster_name + '-ambari-server': {
                 'hosts': [ambari_host]
             },
-            'ambari': {
-                'children': ['ambari-agent', 'ambari-server']
+            self.cluster_name + '-ambari': {
+                'children': [self.cluster_name + '-ambari-agent', self.cluster_name + '-ambari-server']
             },
+            'ambari-agent': {
+                'children': [self.cluster_name + '-ambari-agent']
+            },
+            'ambari-server': {
+                'children': [self.cluster_name + '-ambari-server']
+            },
+            'ambari': {
+                'children': [
+                    'ambari-agent',
+                    'ambari-server'
+                ]
+            }
             '_meta': {
                 'hostvars': {}
             }
@@ -130,7 +142,8 @@ class AmbariInventory(object):
                 if (service_k == 'pig' and component_k == 'pig') or (service_k == 'slider' and component_k == 'slider') or (service_k == 'sqoop' and component_k == 'sqoop'):
                     component_k = 'client'
 
-                elif (service_k == 'infra_solr' and component_k = 'infra_solr'):
+                # rename infra_solr to infra_solr_server for consistency
+                elif (service_k == 'ambari_infra' and component_k == 'infra_solr'):
                     component_k = 'infra_solr_server'
 
                 if self.cluster_name + '-' + service_k + '-' + component_k not in inventory[self.cluster_name + '-' + service_k]['children']:
