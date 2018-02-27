@@ -96,7 +96,7 @@ for component in ${components}; do
       ;;
   esac
 
-  echo curl -s \
+  curl -s \
     -k \
     -H "X-Requested-By: ambari" \
     -u ${ambari_user}${ambari_pass_arg} \
