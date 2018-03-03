@@ -80,7 +80,7 @@ function curl_call() {
     -u ${ambari_user}${ambari_pass_arg} \
     -X POST \
     -d "[{\"Event\": {\"specs\": [{\"principal_type\": \"${1}\", \"sync_type\": \"specific\", \"names\": \"${2}\"}]}}]" \
-    ${ambari_uri}/api/v1/ldap-sync-events
+    ${ambari_uri}/api/v1/ldap_sync_events
 }
 
 if [[ -n "${user_list}" ]]; then
