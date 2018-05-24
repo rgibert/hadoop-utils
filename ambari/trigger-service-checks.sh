@@ -1,6 +1,6 @@
 #!/bin/bash
 
-all_components="hdfs,yarn,mapreduce2,hbase,hive,webhcat,pig,storm,falcon,oozie,zookeeper,tez,sqoop,ambari_metrics,atlas,kafka,knox,spark,smartsense,ranger,ranger_kms,zookeeper"
+all_components="hdfs,yarn,mapreduce2,hbase,hive,webhcat,pig,storm,falcon,oozie,zookeeper,tez,sqoop,ambari_metrics,atlas,kafka,knox,spark,smartsense,ranger,ranger_kms,zookeeper,flume"
 
 set -e
 
@@ -84,7 +84,7 @@ IFS=","
 for component in ${components}; do
   sn="${component^^}"
   case ${component} in
-    hdfs|yarn|mapreduce2|hbase|hive|webhcat|pig|storm|falcon|oozie|tez|sqoop|ambari_metrics|atlas|kafka|knox|spark|smartsense|ranger|ranger_kms)
+    hdfs|yarn|mapreduce2|hbase|hive|webhcat|pig|storm|falcon|oozie|tez|sqoop|ambari_metrics|atlas|kafka|knox|spark|smartsense|ranger|ranger_kms|flume)
       cmd="${sn}_SERVICE_CHECK"
       ;;
     zookeeper)
