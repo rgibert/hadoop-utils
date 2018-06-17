@@ -83,10 +83,10 @@ function curl_call() {
     ${ambari_uri}/api/v1/ldap_sync_events
 }
 
-if [[ -n "${user_list}" ]]; then
+if [[ -n "${user_list:-}" ]]; then
   curl_call "users" "${user_list}"
 fi
 
-if [[ -n "${group_list}" ]]; then
+if [[ -n "${group_list:-}" ]]; then
   curl_call "groups" "${group_list}"
 fi
