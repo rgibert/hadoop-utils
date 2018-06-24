@@ -108,6 +108,7 @@ fi
 
 if [[ -n "${admin_user_list:-}" ]]; then
   curl_sync "users" "${admin_user_list}"
+  curl_make_admin  "${admin_user_list}"
 fi
 
 if [[ -n "${group_list:-}" ]]; then
