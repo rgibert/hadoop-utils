@@ -96,7 +96,6 @@ function curl_make_admin() {
       -H 'X-Requested-By: ambari' \
       -u ${ambari_user}${ambari_pass_arg} \
       -X PUT \
-      -d "[{\"Event\": {\"specs\": [{\"principal_type\": \"${1}\", \"sync_type\": \"specific\", \"names\": \"${2}\"}]}}]" \
       -d '{"Users" : {"admin" : "true"}}' \
       ${ambari_uri}/api/v1/users/${user}
   done
