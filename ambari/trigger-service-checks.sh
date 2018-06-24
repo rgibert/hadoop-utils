@@ -1,11 +1,12 @@
 #!/bin/bash
 
+set -eu
+
+# All components available to trigger
 all_components="hdfs,yarn,mapreduce2,hbase,hive,webhcat,pig,storm,falcon,oozie,zookeeper,tez,sqoop,ambari_metrics,atlas,kafka,knox,spark,smartsense,ranger,ranger_kms,zookeeper,flume"
 
-set -e
-
 function print_help() {
-  if [[ -n ${1} ]]; then
+  if [[ -n ${1:-} ]]; then
     exit_code=${1}
   else
     exit_code=0
@@ -24,7 +25,7 @@ function print_help() {
   echo "                   Options:"
   echo "                     - all"
   IFS=","
-  for component in ${components}; do
+  for component in ${all_components}; do
     echo "                     - ${component}"
   done
   IFS=" "
@@ -40,6 +41,13 @@ function print_err() {
   print_help 1
 }
 
+# Default to triggering all components
+components="all"
+
+# Make sure all other settings aren't set by default
+unset ambari_user ambari_pass ambari_uri cluster_name
+
+# Process args
 while getopts ":u:p:c:s:n:h" OPT; do
   shopt -s nocasematch
   case ${OPT} in
@@ -64,9 +72,9 @@ while getopts ":u:p:c:s:n:h" OPT; do
   esac
 done
 
-if [[ -z ${ambari_user} ]]; then
+if [[ -z ${ambari_user:-} ]]; then
   print_err "-u not specified and is required"
-elif [[ -z ${ambari_uri} ]]; then
+elif [[ -z ${ambari_uri:-} ]]; then
   print_err "-s not specified and is required"
 fi
 
@@ -74,7 +82,7 @@ if [[ "${components}" == "all" ]]; then
   components="${all_components}"
 fi
 
-if [[ -n "${ambari_pass}" ]]; then
+if [[ -n "${ambari_pass:-}" ]]; then
   ambari_pass_arg=":${ambari_pass}"
 else
   ambari_pass_arg=""

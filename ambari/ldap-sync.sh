@@ -1,7 +1,9 @@
 #!/bin/bash
 
+set -ue
+
 function print_help() {
-  if [[ -n ${1} ]]; then
+  if [[ -n ${1:-} ]]; then
     exit_code=${1}
   else
     exit_code=0
@@ -17,8 +19,9 @@ function print_help() {
   echo ""
   echo "Optional parameters:"
   echo " -p ambari_pass    Ambari admin user's password"
-  echo " -f users          Comma separated list of users to sync (either -f or -g must be provided)"
-  echo " -g groups         Comma separated list of groups to sync (either -f or -g must be provided)"
+  echo " -f users          Comma separated list of users to sync (at least one of -f, -a, or -g must be provided)"
+  echo " -a admin_users    Comma separated list of users to sync and be made admins (at least one of -f, -a, or -g must be provided)"
+  echo " -g groups         Comma separated list of groups to sync (at least one of -f, -a, or -g must be provided)"
   echo " -h                Help screen"
   echo ""
 
@@ -31,7 +34,7 @@ function print_err() {
   print_help 1
 }
 
-while getopts ":u:p:s:f:g:h" OPT; do
+while getopts ":u:p:s:f:g:a:h" OPT; do
   shopt -s nocasematch
   case ${OPT} in
     u)
@@ -49,6 +52,9 @@ while getopts ":u:p:s:f:g:h" OPT; do
     g)
       group_list="${OPTARG}"
       ;;
+    a)
+      admin_user_list="${OPTARG}"
+      ;;
     h)
       print_help
       ;;
@@ -56,23 +62,21 @@ while getopts ":u:p:s:f:g:h" OPT; do
 done
 
 # Verify required parameters were provided
-if [[ -z ${ambari_user} ]]; then
+if [[ -z ${ambari_user:-} ]]; then
   print_err "-u not specified and is required"
-elif [[ -z ${ambari_uri} ]]; then
+elif [[ -z ${ambari_uri:-} ]]; then
   print_err "-s not specified and is required"
-elif [[ -z ${user_list} ]] && [[ -z ${group_list} ]]; then
+elif [[ -z ${user_list:-} ]] && [[ -z ${group_list:-} ]] && [[ -z ${admin_user_list:-} ]]; then
   print_err "-f or -g (or both) must be provided"
 fi
 
-if [[ -n "${ambari_pass}" ]]; then
+if [[ -n "${ambari_pass:-}" ]]; then
   ambari_pass_arg=":${ambari_pass}"
 else
   ambari_pass_arg=""
 fi
 
-set -ue
-
-function curl_call() {
+function curl_sync() {
   curl \
     -s \
     -k \
@@ -83,10 +87,30 @@ function curl_call() {
     ${ambari_uri}/api/v1/ldap_sync_events
 }
 
+function curl_make_admin() {
+  IFS=","
+  for user in ${1}; do
+    curl \
+      -s \
+      -k \
+      -H 'X-Requested-By: ambari' \
+      -u ${ambari_user}${ambari_pass_arg} \
+      -X PUT \
+      -d "[{\"Event\": {\"specs\": [{\"principal_type\": \"${1}\", \"sync_type\": \"specific\", \"names\": \"${2}\"}]}}]" \
+      -d '{"Users" : {"admin" : "true"}}' \
+      ${ambari_uri}/api/v1/users/${user}
+  done
+  IFS=" "
+}
+
 if [[ -n "${user_list:-}" ]]; then
-  curl_call "users" "${user_list}"
+  curl_sync "users" "${user_list}"
+fi
+
+if [[ -n "${admin_user_list:-}" ]]; then
+  curl_sync "users" "${admin_user_list}"
 fi
 
 if [[ -n "${group_list:-}" ]]; then
-  curl_call "groups" "${group_list}"
+  curl_sync "groups" "${group_list}"
 fi
