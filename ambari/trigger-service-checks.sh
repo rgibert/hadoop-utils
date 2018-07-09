@@ -5,14 +5,14 @@ set -eu
 # All components available to trigger
 all_components="hdfs,yarn,mapreduce2,hbase,hive,webhcat,pig,storm,falcon,oozie,zookeeper,tez,sqoop,ambari_metrics,atlas,kafka,knox,spark,smartsense,ranger,ranger_kms,zookeeper,flume"
 
-function print_help() {
+print_help() {
   if [[ -n ${1:-} ]]; then
-    exit_code=${1}
+    exit_code="${1}"
   else
     exit_code=0
   fi
 
-  echo "usage: $(basename ${0}) [OPTIONS]"
+  echo "usage: $(basename "${0}") [OPTIONS]"
   echo ""
   echo "Required parameters:"
   echo " -u AMBARI_USER    Ambari admin user name"
@@ -35,7 +35,7 @@ function print_help() {
   exit ${exit_code}
 }
 
-function print_err() {
+print_err() {
   echo "ERROR: ${1}"
   echo ""
   print_help 1
@@ -107,8 +107,8 @@ for component in ${components}; do
   curl -s \
     -k \
     -H "X-Requested-By: ambari" \
-    -u ${ambari_user}${ambari_pass_arg} \
+    -u "${ambari_user}${ambari_pass_arg}" \
     -X POST \
     -d "{\"RequestInfo\":{\"context\":\"${sn} Service Check\",\"command\":\"${cmd}\"},\"Requests/resource_filters\":[{\"service_name\":\"${sn}\"}]}" \
-    ${ambari_uri}/api/v1/clusters/${cluster_name}/requests
+    "${ambari_uri}/api/v1/clusters/${cluster_name}/requests"
 done

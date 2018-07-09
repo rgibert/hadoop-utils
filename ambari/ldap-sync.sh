@@ -2,14 +2,14 @@
 
 set -ue
 
-function print_help() {
+print_help() {
   if [[ -n ${1:-} ]]; then
     exit_code=${1}
   else
     exit_code=0
   fi
 
-  echo "usage: $(basename ${0}) [OPTIONS]"
+  echo "usage: $(basename "${0}") [OPTIONS]"
   echo ""
   echo "Script to sync LDAP users and/or groups with Ambari"
   echo ""
@@ -28,7 +28,7 @@ function print_help() {
   exit ${exit_code}
 }
 
-function print_err() {
+print_err() {
   echo "ERROR: ${1}"
   echo ""
   print_help 1
@@ -76,28 +76,28 @@ else
   ambari_pass_arg=""
 fi
 
-function curl_sync() {
+curl_sync() {
   curl \
     -s \
     -k \
     -H 'X-Requested-By: ambari' \
-    -u ${ambari_user}${ambari_pass_arg} \
+    -u "${ambari_user}${ambari_pass_arg}" \
     -X POST \
     -d "[{\"Event\": {\"specs\": [{\"principal_type\": \"${1}\", \"sync_type\": \"specific\", \"names\": \"${2}\"}]}}]" \
-    ${ambari_uri}/api/v1/ldap_sync_events
+    "${ambari_uri}/api/v1/ldap_sync_events"
 }
 
-function curl_make_admin() {
+curl_make_admin() {
   IFS=","
   for user in ${1}; do
     curl \
       -s \
       -k \
       -H 'X-Requested-By: ambari' \
-      -u ${ambari_user}${ambari_pass_arg} \
+      -u "${ambari_user}${ambari_pass_arg}" \
       -X PUT \
       -d '{"Users" : {"admin" : "true"}}' \
-      ${ambari_uri}/api/v1/users/${user}
+      "${ambari_uri}/api/v1/users/${user}"
   done
   IFS=" "
 }
