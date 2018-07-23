@@ -14,6 +14,19 @@ import re
 class AmbariInventory(object):
 
     def __init__(self):
+        if os.environ.get('AMBARI_CLUSTER_NAME') != 'True':
+            print "Required AMBARI_CLUSTER_NAME environment variable not set."
+            sys.exit(1)
+        elif os.environ.get('AMBARI_USER_NAME') != 'True':
+            print "Required AMBARI_USER_NAME environment variable not set."
+            sys.exit(1)
+        elif os.environ.get('AMBARI_USER_PASS') != 'True':
+            print "Required AMBARI_USER_PASS environment variable not set."
+            sys.exit(1)
+        elif os.environ.get('AMBARI_URI') != 'True':
+            print "Required AMBARI_URI environment variable not set."
+            sys.exit(1)
+
         # Get the cluster name from the OS environment variable AMBARI_CLUSTER_NAME
         self.cluster_name = os.environ['AMBARI_CLUSTER_NAME']
         self.uri = os.environ['AMBARI_URI']
@@ -105,7 +118,7 @@ class AmbariInventory(object):
                     'ambari-agent',
                     'ambari-server'
                 ]
-            }
+            },
             '_meta': {
                 'hostvars': {}
             }
