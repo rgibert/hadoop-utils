@@ -91,18 +91,11 @@ fi
 IFS=","
 for component in ${components}; do
   sn="${component^^}"
-  case ${component} in
-    hdfs|yarn|mapreduce2|hbase|hive|webhcat|pig|storm|falcon|oozie|tez|sqoop|ambari_metrics|atlas|kafka|knox|spark|smartsense|ranger|ranger_kms|flume)
-      cmd="${sn}_SERVICE_CHECK"
-      ;;
-    zookeeper)
-      cmd="ZOOKEEPER_QUORUM_SERVICE_CHECK"
-      ;;
-    *)
-      echo "WARN: invalid component ${component} passed, skipping"
-      continue
-      ;;
-  esac
+  if [[ "${component}" == "zookeeper" ]]; then
+    cmd="ZOOKEEPER_QUORUM_SERVICE_CHECK"
+  if [[ ]]
+    cmd="${sn}_SERVICE_CHECK"
+  fi
 
   curl -s \
     -k \
