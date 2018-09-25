@@ -93,7 +93,7 @@ for component in ${components}; do
   sn="${component^^}"
   if [[ "${component}" == "zookeeper" ]]; then
     cmd="ZOOKEEPER_QUORUM_SERVICE_CHECK"
-  if [[ ]]
+  else
     cmd="${sn}_SERVICE_CHECK"
   fi
 
