@@ -103,7 +103,7 @@ curl_make_admin() {
 }
 
 if [[ -n "${user_list:-}" ]]; then
-  curl_sync "users" "${user_list}"
+  curl_sync "users" "${user_list},${admin_user_list}"
 fi
 
 if [[ -n "${admin_user_list:-}" ]]; then
@@ -114,3 +114,4 @@ fi
 if [[ -n "${group_list:-}" ]]; then
   curl_sync "groups" "${group_list}"
 fi
+
