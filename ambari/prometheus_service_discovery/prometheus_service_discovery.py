@@ -21,7 +21,31 @@ def process_args():
     parser.add_argument(
         '--file',
         action='store',
+        default='ambari_sd.json',
         help='where to store the resulting service discovery file'
+    )
+    parser.add_argument(
+        '--uri',
+        action='store',
+        help='Ambari URI'
+    )
+    parser.add_argument(
+        '--ambari_user',
+        action='store',
+        default='admin',
+        help='Ambari admin user name'
+    )
+    parser.add_argument(
+        '--ambari_pass',
+        action='store',
+        required=True,
+        help='Ambari admin user password'
+    )
+    parser.add_argument(
+        '--ports',
+        action='store',
+        default='9100',
+        help='Comma seperated list of the ports the hosts\' exporter(s) are listening on'
     )
     return parser.parse_args()
 
@@ -40,43 +64,36 @@ class AmbariPrometheusServiceDiscovery():
     """Class for generating Ambari Prometheus host lists"""
 
     def __init__(self):
-        self._cluster_name = get_env_var('AMBARI_CLUSTER_NAME', False)
-        self._uri = get_env_var('AMBARI_URI')
-        self._ambari_user = get_env_var('AMBARI_USER_NAME')
-        self._ambari_pass = get_env_var('AMBARI_USER_PASS')
-
-        args = process_args()
-
-        if self._cluster_name is None:
-            self.cluster_name = self.get_cluster_name()
+        self._args = process_args()
+        self._cluster_name = self.get_cluster_name()
 
         host_component_list = self.get_host_component_list()
         targets = self.generate_targets(host_component_list)
 
-        logging.debug('writing to %s', args.file)
-        with open(args.file, 'w') as json_file:
+        logging.debug('writing to %s', self._args.file)
+        with open(self._args.file, 'w') as json_file:
             json.dump(targets, json_file)
 
     def ambari_get(self, path):
         """Wrapper function for making REST calls to Ambari"""
-        full_uri = self._uri + '/api/v1/clusters/' + self._cluster_name + path
+        full_uri = self._args.uri + '/api/v1/clusters/' + self._cluster_name + path
 
         logging.debug(full_uri)
 
         return requests.get(
             full_uri,
-            auth=(self._ambari_user, self._ambari_pass),
+            auth=(self._args.ambari_user, self._args.ambari_pass),
             verify=False)
     
     def get_cluster_name(self):
         """Retrieves the first cluster listed"""
-        full_uri = self._uri + '/api/v1/clusters'
+        full_uri = self._args + '/api/v1/clusters'
 
         logging.debug(full_uri)
 
         results = requests.get(
             full_uri,
-            auth=(self._ambari_user, self._ambari_pass),
+            auth=(self._args.ambari_user, self._args._ambari_pass),
             verify=False)
         
         return results['items'][0]['Clusters']['cluster_name']
@@ -111,7 +128,7 @@ class AmbariPrometheusServiceDiscovery():
     def generate_targets(self, hosts):
         """Converts a service list into Prometheus service discovery format"""
 
-        ambari_host = re.sub(r'https?:\/\/', '', self._uri)
+        ambari_host = re.sub(r'https?:\/\/', '', self._args.uri)
         ambari_host = re.sub(r':\d+', '', ambari_host)
 
         master_target_index = 0
@@ -119,7 +136,7 @@ class AmbariPrometheusServiceDiscovery():
 
         targets = [
             {
-                'targets': ['ambari_host'],
+                'targets': [],
                 'labels': {
                     'hadoop_cluster': self._cluster_name,
                     'node_type': 'master'
@@ -133,6 +150,9 @@ class AmbariPrometheusServiceDiscovery():
                 }
             }
         ]
+
+        for port in self._args.ports:
+            targets[master_target_index]['targets'].append('%s:%i', ambari_host, port)
 
         # Loop over hosts
         for host, components in hosts.items():
@@ -148,12 +168,13 @@ class AmbariPrometheusServiceDiscovery():
                     is_master = True
 
             if host not in targets[master_target_index]['targets'] and host not in targets[worker_target_index]['targets']:
-                if is_master:
-                    logging.debug('%s identified as master node', host)
-                    targets[master_target_index]['targets'].append(host)
-                else:
-                    logging.debug('%s identified as worker node', host)
-                    targets[worker_target_index]['targets'].append(host)
+                for port in self._args.ports:
+                    if is_master:
+                        logging.debug('%s identified as master node', host)
+                        targets[master_target_index]['targets'].append('%s:%i', host, port)
+                    else:
+                        logging.debug('%s identified as worker node', host)
+                        targets[worker_target_index]['targets'].append('%s:%i', host, port)
             else:
                 logging.debug('%s already in output', host)
 
